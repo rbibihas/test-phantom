@@ -456,22 +456,47 @@
             }
         });
 
-        // Chatbot Logic
+        // Chatbot Logic with OpenAI GPT Integration
         const chatbotMessages = document.getElementById('chatbot-messages');
         const chatbotInput = document.getElementById('chatbot-input');
         const chatbotSendButton = document.getElementById('chatbot-send');
 
-        chatbotSendButton.addEventListener('click', () => {
+        chatbotSendButton.addEventListener('click', async () => {
             const userMessage = chatbotInput.value.trim();
             if (userMessage) {
                 addMessage('You', userMessage);
                 chatbotInput.value = '';
-                // Simulate a chatbot response (you can replace this with an actual API call)
-                setTimeout(() => {
-                    addMessage('Jevana AI', 'I am here to help you with any questions you have about Jevana or decentralized finance.');
-                }, 1000);
+
+                // Call OpenAI GPT API for a response
+                const response = await getChatbotResponse(userMessage);
+                addMessage('Jevana AI', response);
             }
         });
+
+        async function getChatbotResponse(userMessage) {
+            const apiKey = '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'; // Replace with your OpenAI API key
+            const endpoint = 'https://api.openai.com/v1/chat/completions';
+
+            const requestBody = {
+                model: 'gpt-3.5-turbo', // Use GPT-3.5 Turbo for better performance
+                messages: [
+                    { role: 'system', content: 'You are a helpful assistant for Jevana AI, a decentralized finance platform.' },
+                    { role: 'user', content: userMessage },
+                ],
+            };
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        }
 
         function addMessage(sender, message) {
             const messageElement = document.createElement('div');
