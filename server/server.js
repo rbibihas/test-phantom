@@ -1,6 +1,6 @@
 const express = require('express');
-const fetch = require('node-fetch');
-const path = require('path');
+const { TextServiceClient } = require("@google-ai/generativelanguage").v1beta2;
+const { GoogleAuth } = require("google-auth-library");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,43 +8,33 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse JSON
 app.use(express.json());
 
-// Serve static files from the "public" directory
-app.use(express.static(path.join(__dirname, '../public')));
+// Google PaLM API Configuration
+const MODEL_NAME = "models/chat-bison-001"; // Google's chat model
+const API_KEY = process.env.GOOGLE_PALM_API_KEY; // Your Google PaLM API key
 
-// Proxy endpoint for Hugging Face API
+const client = new TextServiceClient({
+    authClient: new GoogleAuth().fromAPIKey(API_KEY),
+});
+
+// Proxy endpoint for Google PaLM API
 app.post('/api/chatbot', async (req, res) => {
-    const apiKey = process.env.HUGGINGFACE_API_KEY; // Use environment variable for API key
-    const endpoint = 'https://api-inference.huggingface.co/models/facebook/blenderbot-3B'; // BlenderBot model
-
-    const requestBody = {
-        inputs: {
-            past_user_inputs: [],
-            generated_responses: [],
-            text: req.body.message, // User's message
-        },
-    };
+    const userMessage = req.body.message;
 
     try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
+        const response = await client.generateMessage({
+            model: MODEL_NAME,
+            prompt: {
+                context: "You are a helpful assistant for Jevana AI, a decentralized finance platform.",
+                examples: [],
+                messages: [{ content: userMessage }],
             },
-            body: JSON.stringify(requestBody),
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Hugging Face API Error:', errorText);
-            return res.status(500).json({ error: 'Error calling Hugging Face API' });
-        }
-
-        const data = await response.json();
-        res.json(data);
+        const generatedText = response[0].candidates[0].content;
+        res.json({ generated_text: generatedText });
     } catch (error) {
-        console.error('Error calling Hugging Face API:', error);
-        res.status(500).json({ error: 'Error calling Hugging Face API' });
+        console.error('Google PaLM API Error:', error);
+        res.status(500).json({ error: 'Error calling Google PaLM API' });
     }
 });
 
