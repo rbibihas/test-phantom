@@ -163,6 +163,7 @@
         .space-shooter-game {
             display: none;
             margin-top: 40px;
+            margin-bottom: 60px; /* Add space below the game section */
         }
 
         .space-shooter-game canvas {
@@ -235,10 +236,8 @@
         </div>
         
         <div class="about-section">
-            <h2>About Jevana - Holiday Edition</h2>
-            <p>This holiday season, Jevana brings you the gift of revolutionary cryptocurrency designed to reshape the landscape of decentralized finance. Built on cutting-edge blockchain technology, Jevana offers unparalleled security, scalability, and efficiency for all your financial needs.</p>
-            <p>Our mission is to spread joy and democratize access to financial services, empowering individuals across the globe. With Jevana, you're not just investing in a cryptocurrency; you're joining a festive movement towards a more inclusive and transparent financial future.</p>
-            <p>Experience the magic of Jevana today and be part of the next generation of digital finance. Happy Holidays!</p>
+        <h2>About Jevana - Holiday Edition</h2>
+        <div id="typing-effect"></div>
         </div>
 
         <div class="social-links">
@@ -302,6 +301,44 @@
             canvas.height = window.innerHeight;
         });
 
+
+// Typing Effect for About Section
+const aboutText = [
+    "This holiday season, Jevana brings you the gift of revolutionary cryptocurrency designed to reshape the landscape of decentralized finance. Built on cutting-edge blockchain technology, Jevana offers unparalleled security, scalability, and efficiency for all your financial needs.",
+    "Our mission is to spread joy and democratize access to financial services, empowering individuals across the globe. With Jevana, you're not just investing in a cryptocurrency; you're joining a festive movement towards a more inclusive and transparent financial future.",
+    "Experience the magic of Jevana today and be part of the next generation of digital finance. Happy Holidays!"
+];
+
+const typingEffectElement = document.getElementById('typing-effect');
+let currentTextIndex = 0;
+let currentCharIndex = 0;
+let isDeleting = false;
+
+function typeText() {
+    const currentText = aboutText[currentTextIndex];
+
+    if (isDeleting) {
+        typingEffectElement.textContent = currentText.substring(0, currentCharIndex - 1);
+        currentCharIndex--;
+    } else {
+        typingEffectElement.textContent = currentText.substring(0, currentCharIndex + 1);
+        currentCharIndex++;
+    }
+
+    if (!isDeleting && currentCharIndex === currentText.length) {
+        setTimeout(() => isDeleting = true, 2000); // Wait 2 seconds before deleting
+    } else if (isDeleting && currentCharIndex === 0) {
+        isDeleting = false;
+        currentTextIndex = (currentTextIndex + 1) % aboutText.length; // Move to the next text
+    }
+
+    setTimeout(typeText, isDeleting ? 50 : 100); // Adjust typing speed
+}
+
+// Start the typing effect
+typeText();
+
+        
         // Eye Movement
         const eye = document.getElementById('devil-eye');
         const pupil = document.getElementById('pupil');
