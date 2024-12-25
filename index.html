@@ -546,9 +546,9 @@
                     player.y < enemy.y + enemy.height &&
                     player.y + player.height > enemy.y
                 ) {
+                    // Game Over: Reset the game without showing a popup
                     isGameRunning = false;
-                    alert('Game Over! Your score: ' + score);
-                    initGame();
+                    initGame(); // Restart the game
                 }
             });
 
