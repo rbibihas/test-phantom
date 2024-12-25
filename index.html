@@ -431,16 +431,18 @@
                 enemies.push({ x: Math.random() * (gameCanvas.width - 50), y: 0, width: 50, height: 50 });
             }, 1000);
 
-            document.addEventListener('keydown', (e) => {
-                if (e.code === 'ArrowLeft') {
-                    player.x = Math.max(0, player.x - player.speed);
-                } else if (e.code === 'ArrowRight') {
-                    player.x = Math.min(gameCanvas.width - player.width, player.x + player.speed);
-                }
-            });
-
             gameCanvas.addEventListener('click', () => {
                 bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
+            });
+
+            // Track mouse movement for smooth player movement
+            gameCanvas.addEventListener('mousemove', (e) => {
+                const rect = gameCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const targetX = Math.max(0, Math.min(gameCanvas.width - player.width, mouseX - player.width / 2));
+
+                // Smoothly move the player towards the target position
+                player.x += (targetX - player.x) * 0.1;
             });
         }
 
