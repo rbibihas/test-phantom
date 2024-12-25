@@ -199,6 +199,7 @@
         <div class="login-section">
             <button id="connect-wallet">Connect Phantom Wallet</button>
             <button id="connected-button" style="display: none;">Connected: <span id="wallet-short"></span></button>
+            <button id="disconnect-button" style="display: none;">Disconnect</button>
         </div>
 
         <header>
@@ -353,13 +354,30 @@
             }
         }
 
+        function updateDisplay() {
+            tokenCountElement.textContent = tokens.toFixed(2);
+            miningPowerElement.textContent = clickPower;
+            upgradeCostElement.textContent = upgradeCost.toFixed(2);
+            withdrawableTokensElement.textContent = withdrawableTokens.toFixed(2);
+        }
+
+        function checkWalletConnection() {
+            if (!walletAddress) {
+                alert('Please connect your Phantom wallet to perform this action.');
+                return false;
+            }
+            return true;
+        }
+
         document.getElementById('mine-button').addEventListener('click', () => {
+            if (!checkWalletConnection()) return;
             tokens += clickPower / 10;
             saveTokens();
             updateDisplay();
         });
 
         document.getElementById('upgrade-button').addEventListener('click', () => {
+            if (!checkWalletConnection()) return;
             if (tokens >= upgradeCost) {
                 tokens -= upgradeCost;
                 clickPower++;
@@ -370,20 +388,15 @@
         });
 
         document.getElementById('withdraw-button').addEventListener('click', () => {
+            if (!checkWalletConnection()) return;
             withdrawableTokens += tokens;
             tokens = 0;
             saveTokens();
             updateDisplay();
         });
 
-        function updateDisplay() {
-            tokenCountElement.textContent = tokens.toFixed(2);
-            miningPowerElement.textContent = clickPower;
-            upgradeCostElement.textContent = upgradeCost.toFixed(2);
-            withdrawableTokensElement.textContent = withdrawableTokens.toFixed(2);
-        }
-
         setInterval(() => {
+            if (!walletAddress) return;
             tokens += clickPower / 100;
             saveTokens();
             updateDisplay();
@@ -392,6 +405,7 @@
         // Phantom Wallet Integration
         const connectWalletButton = document.getElementById('connect-wallet');
         const connectedButton = document.getElementById('connected-button');
+        const disconnectButton = document.getElementById('disconnect-button');
         const walletShort = document.getElementById('wallet-short');
         const spaceShooterGameSection = document.querySelector('.space-shooter-game');
         const gameCanvas = document.getElementById('game-canvas');
@@ -407,6 +421,7 @@
             walletAddress = savedWalletAddress;
             connectWalletButton.style.display = 'none';
             connectedButton.style.display = 'inline-block';
+            disconnectButton.style.display = 'inline-block';
             walletShort.textContent = savedWalletAddress.substring(0, 4);
             loadTokens();
             updateDisplay();
@@ -428,6 +443,7 @@
 
                     connectWalletButton.style.display = 'none';
                     connectedButton.style.display = 'inline-block';
+                    disconnectButton.style.display = 'inline-block';
                     walletShort.textContent = walletAddress.substring(0, 4);
 
                     loadTokens();
@@ -445,6 +461,20 @@
             }
         });
 
+        disconnectButton.addEventListener('click', () => {
+            disconnectWallet();
+        });
+
+        function disconnectWallet() {
+            localStorage.removeItem('walletAddress');
+            walletAddress = null;
+            connectWalletButton.style.display = 'inline-block';
+            connectedButton.style.display = 'none';
+            disconnectButton.style.display = 'none';
+            spaceShooterGameSection.style.display = 'none';
+            alert('You have been disconnected.');
+        }
+
         function startDisconnectTimer() {
             // Clear any existing timeout
             if (disconnectTimeout) {
@@ -455,15 +485,6 @@
             disconnectTimeout = setTimeout(() => {
                 disconnectWallet();
             }, 3600000); // 1 hour
-        }
-
-        function disconnectWallet() {
-            localStorage.removeItem('walletAddress');
-            walletAddress = null;
-            connectWalletButton.style.display = 'inline-block';
-            connectedButton.style.display = 'none';
-            spaceShooterGameSection.style.display = 'none';
-            alert('You have been disconnected due to inactivity.');
         }
 
         // Reset the disconnect timer on user interaction
@@ -483,6 +504,10 @@
             }, 1000);
 
             gameCanvas.addEventListener('click', () => {
+                if (!walletAddress) {
+                    alert('Please connect your Phantom wallet to play the game.');
+                    return;
+                }
                 bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
             });
 
@@ -537,6 +562,13 @@
                         enemies.splice(index, 1);
                         score++;
                         scoreElement.textContent = score;
+
+                        // Mine tokens when an enemy is destroyed
+                        if (walletAddress) {
+                            tokens += clickPower / 10;
+                            saveTokens();
+                            updateDisplay();
+                        }
                     }
                 });
 
