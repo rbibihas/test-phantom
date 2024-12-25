@@ -418,9 +418,13 @@
         // Load icons
         const playerIcon = new Image();
         playerIcon.src = 'https://cdn-icons-png.flaticon.com/512/809/809052.png'; // Free aircraft icon from Flaticon
+        playerIcon.onload = () => console.log('Player icon loaded successfully');
+        playerIcon.onerror = () => console.error('Failed to load player icon');
 
         const enemyIcon = new Image();
         enemyIcon.src = 'https://cdn-icons-png.flaticon.com/512/3142/3142028.png'; // Free UFO icon from Flaticon
+        enemyIcon.onload = () => console.log('Enemy icon loaded successfully');
+        enemyIcon.onerror = () => console.error('Failed to load enemy icon');
 
         // Load sound effects
         const shootSound = new Audio('https://www.freesound.org/data/previews/511/511919_919539-lq.mp3'); // Replace with your shoot sound URL
