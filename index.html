@@ -421,7 +421,7 @@
 
         function initGame() {
             isGameRunning = true;
-            player = { x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 50, width: 50, height: 50 };
+            player = { x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 50, width: 50, height: 50, speed: 5 };
             bullets = [];
             enemies = [];
             score = 0;
@@ -432,13 +432,15 @@
             }, 1000);
 
             document.addEventListener('keydown', (e) => {
-                if (e.code === 'Space') {
-                    bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
-                } else if (e.code === 'ArrowLeft') {
-                    player.x = Math.max(0, player.x - 10);
+                if (e.code === 'ArrowLeft') {
+                    player.x = Math.max(0, player.x - player.speed);
                 } else if (e.code === 'ArrowRight') {
-                    player.x = Math.min(gameCanvas.width - player.width, player.x + 10);
+                    player.x = Math.min(gameCanvas.width - player.width, player.x + player.speed);
                 }
+            });
+
+            gameCanvas.addEventListener('click', () => {
+                bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
             });
         }
 
@@ -502,7 +504,12 @@
 
         function drawPlayer(ctx, x, y) {
             ctx.fillStyle = '#00ff00';
-            ctx.fillRect(x, y, 50, 50);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 50, y);
+            ctx.lineTo(x + 25, y - 50);
+            ctx.closePath();
+            ctx.fill();
         }
 
         function drawBullet(ctx, x, y) {
@@ -512,7 +519,12 @@
 
         function drawEnemy(ctx, x, y) {
             ctx.fillStyle = '#ff0000';
-            ctx.fillRect(x, y, 50, 50);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 50, y);
+            ctx.lineTo(x + 25, y + 50);
+            ctx.closePath();
+            ctx.fill();
         }
 
         // Check if Phantom wallet is installed
