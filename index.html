@@ -198,6 +198,7 @@
     <div class="container">
         <div class="login-section">
             <button id="connect-wallet">Connect Phantom Wallet</button>
+            <button id="connected-button" style="display: none;">Connected: <span id="wallet-short"></span></button>
         </div>
 
         <header>
@@ -390,12 +391,30 @@
 
         // Phantom Wallet Integration
         const connectWalletButton = document.getElementById('connect-wallet');
+        const connectedButton = document.getElementById('connected-button');
+        const walletShort = document.getElementById('wallet-short');
         const spaceShooterGameSection = document.querySelector('.space-shooter-game');
         const gameCanvas = document.getElementById('game-canvas');
         const scoreElement = document.getElementById('score');
 
         let isGameRunning = false;
         let player, bullets, enemies, score;
+        let disconnectTimeout;
+
+        // Check if the user is already connected
+        const savedWalletAddress = localStorage.getItem('walletAddress');
+        if (savedWalletAddress) {
+            walletAddress = savedWalletAddress;
+            connectWalletButton.style.display = 'none';
+            connectedButton.style.display = 'inline-block';
+            walletShort.textContent = savedWalletAddress.substring(0, 4);
+            loadTokens();
+            updateDisplay();
+            spaceShooterGameSection.style.display = 'block';
+            initGame();
+            animate();
+            startDisconnectTimer();
+        }
 
         connectWalletButton.addEventListener('click', async () => {
             if (window.solana && window.solana.isPhantom) {
@@ -404,13 +423,20 @@
                     walletAddress = resp.publicKey.toString();
                     console.log('Connected with Public Key:', walletAddress);
 
+                    // Save wallet address to localStorage
+                    localStorage.setItem('walletAddress', walletAddress);
+
+                    connectWalletButton.style.display = 'none';
+                    connectedButton.style.display = 'inline-block';
+                    walletShort.textContent = walletAddress.substring(0, 4);
+
                     loadTokens();
                     updateDisplay();
                     spaceShooterGameSection.style.display = 'block';
-                    connectWalletButton.style.display = 'none';
 
                     initGame();
                     animate();
+                    startDisconnectTimer();
                 } catch (err) {
                     console.error('Error connecting to Phantom wallet:', err);
                 }
@@ -418,6 +444,31 @@
                 alert('Phantom wallet not detected. Please install Phantom wallet to continue.');
             }
         });
+
+        function startDisconnectTimer() {
+            // Clear any existing timeout
+            if (disconnectTimeout) {
+                clearTimeout(disconnectTimeout);
+            }
+
+            // Set a new timeout for 1 hour (3600000 milliseconds)
+            disconnectTimeout = setTimeout(() => {
+                disconnectWallet();
+            }, 3600000); // 1 hour
+        }
+
+        function disconnectWallet() {
+            localStorage.removeItem('walletAddress');
+            walletAddress = null;
+            connectWalletButton.style.display = 'inline-block';
+            connectedButton.style.display = 'none';
+            spaceShooterGameSection.style.display = 'none';
+            alert('You have been disconnected due to inactivity.');
+        }
+
+        // Reset the disconnect timer on user interaction
+        document.addEventListener('mousedown', startDisconnectTimer);
+        document.addEventListener('keydown', startDisconnectTimer);
 
         function initGame() {
             isGameRunning = true;
