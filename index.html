@@ -238,7 +238,7 @@
         <div class="space-shooter-game">
             <h2>Space Shooter Game</h2>
             <canvas id="game-canvas" width="800" height="600"></canvas>
-            <p>Score: <span id="score">0</span></p>
+            <p>Tokens Earned: <span id="tokens-earned">0</span></p>
         </div>
 
         <div class="social-links">
@@ -409,11 +409,23 @@
         const walletShort = document.getElementById('wallet-short');
         const spaceShooterGameSection = document.querySelector('.space-shooter-game');
         const gameCanvas = document.getElementById('game-canvas');
-        const scoreElement = document.getElementById('score');
+        const tokensEarnedElement = document.getElementById('tokens-earned');
 
         let isGameRunning = false;
-        let player, bullets, enemies, score;
+        let player, bullets, enemies, tokensEarned = 0;
         let disconnectTimeout;
+
+        // Load icons
+        const playerIcon = new Image();
+        playerIcon.src = 'https://cdn-icons-png.flaticon.com/512/196/196685.png'; // Replace with your warplane icon URL
+
+        const enemyIcon = new Image();
+        enemyIcon.src = 'https://cdn-icons-png.flaticon.com/512/196/196685.png'; // Replace with your enemy icon URL
+
+        // Load sound effects
+        const shootSound = new Audio('https://www.freesound.org/data/previews/511/511919_919539-lq.mp3'); // Replace with your shoot sound URL
+        const explosionSound = new Audio('https://www.freesound.org/data/previews/512/512662_919539-lq.mp3'); // Replace with your explosion sound URL
+        const backgroundMusic = new Audio('https://www.freesound.org/data/previews/512/512662_919539-lq.mp3'); // Replace with your background music URL
 
         // Check if the user is already connected
         const savedWalletAddress = localStorage.getItem('walletAddress');
@@ -496,8 +508,8 @@
             player = { x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 50, width: 50, height: 50, speed: 5 };
             bullets = [];
             enemies = [];
-            score = 0;
-            scoreElement.textContent = score;
+            tokensEarned = 0;
+            tokensEarnedElement.textContent = tokensEarned;
 
             setInterval(() => {
                 enemies.push({ x: Math.random() * (gameCanvas.width - 50), y: 0, width: 50, height: 50 });
@@ -509,6 +521,7 @@
                     return;
                 }
                 bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
+                shootSound.play();
             });
 
             // Track mouse movement for smooth player movement
@@ -520,6 +533,10 @@
                 // Smoothly move the player towards the target position
                 player.x += (targetX - player.x) * 0.1;
             });
+
+            // Play background music
+            backgroundMusic.loop = true;
+            backgroundMusic.play();
         }
 
         function animate() {
@@ -529,12 +546,13 @@
             ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
             // Draw player
-            drawPlayer(ctx, player.x, player.y);
+            ctx.drawImage(playerIcon, player.x, player.y, player.width, player.height);
 
             // Draw bullets
             bullets.forEach((bullet, index) => {
                 bullet.y -= 5;
-                drawBullet(ctx, bullet.x, bullet.y);
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
 
                 if (bullet.y < 0) {
                     bullets.splice(index, 1);
@@ -544,7 +562,7 @@
             // Draw enemies
             enemies.forEach((enemy, index) => {
                 enemy.y += 2;
-                drawEnemy(ctx, enemy.x, enemy.y);
+                ctx.drawImage(enemyIcon, enemy.x, enemy.y, enemy.width, enemy.height);
 
                 if (enemy.y > gameCanvas.height) {
                     enemies.splice(index, 1);
@@ -560,15 +578,14 @@
                     ) {
                         bullets.splice(bulletIndex, 1);
                         enemies.splice(index, 1);
-                        score++;
-                        scoreElement.textContent = score;
+                        tokensEarned += clickPower / 10;
+                        tokensEarnedElement.textContent = tokensEarned.toFixed(2);
+                        explosionSound.play();
 
-                        // Mine tokens when an enemy is destroyed
-                        if (walletAddress) {
-                            tokens += clickPower / 10;
-                            saveTokens();
-                            updateDisplay();
-                        }
+                        // Add tokens to the main balance
+                        tokens += clickPower / 10;
+                        saveTokens();
+                        updateDisplay();
                     }
                 });
 
@@ -585,31 +602,6 @@
             });
 
             requestAnimationFrame(animate);
-        }
-
-        function drawPlayer(ctx, x, y) {
-            ctx.fillStyle = '#00ff00';
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + 50, y);
-            ctx.lineTo(x + 25, y - 50);
-            ctx.closePath();
-            ctx.fill();
-        }
-
-        function drawBullet(ctx, x, y) {
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(x, y, 10, 20);
-        }
-
-        function drawEnemy(ctx, x, y) {
-            ctx.fillStyle = '#ff0000';
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + 50, y);
-            ctx.lineTo(x + 25, y + 50);
-            ctx.closePath();
-            ctx.fill();
         }
 
         // Check if Phantom wallet is installed
