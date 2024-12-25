@@ -434,6 +434,10 @@
             document.addEventListener('keydown', (e) => {
                 if (e.code === 'Space') {
                     bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
+                } else if (e.code === 'ArrowLeft') {
+                    player.x = Math.max(0, player.x - 10);
+                } else if (e.code === 'ArrowRight') {
+                    player.x = Math.min(gameCanvas.width - player.width, player.x + 10);
                 }
             });
         }
@@ -445,14 +449,12 @@
             ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
             // Draw player
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
+            drawPlayer(ctx, player.x, player.y);
 
             // Draw bullets
             bullets.forEach((bullet, index) => {
                 bullet.y -= 5;
-                ctx.fillStyle = '#00ff00';
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                drawBullet(ctx, bullet.x, bullet.y);
 
                 if (bullet.y < 0) {
                     bullets.splice(index, 1);
@@ -462,8 +464,7 @@
             // Draw enemies
             enemies.forEach((enemy, index) => {
                 enemy.y += 2;
-                ctx.fillStyle = '#ff0000';
-                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                drawEnemy(ctx, enemy.x, enemy.y);
 
                 if (enemy.y > gameCanvas.height) {
                     enemies.splice(index, 1);
@@ -497,6 +498,21 @@
             });
 
             requestAnimationFrame(animate);
+        }
+
+        function drawPlayer(ctx, x, y) {
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(x, y, 50, 50);
+        }
+
+        function drawBullet(ctx, x, y) {
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(x, y, 10, 20);
+        }
+
+        function drawEnemy(ctx, x, y) {
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(x, y, 50, 50);
         }
 
         // Check if Phantom wallet is installed
