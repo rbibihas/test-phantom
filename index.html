@@ -160,12 +160,12 @@
             color: #00ff00;
         }
 
-        .pixel-game {
+        .space-shooter-game {
             display: none;
             margin-top: 40px;
         }
 
-        .pixel-game canvas {
+        .space-shooter-game canvas {
             border: 2px solid #ff0000;
             background: rgba(0, 0, 0, 0.5);
             cursor: crosshair;
@@ -233,13 +233,10 @@
             <p>Experience the magic of Jevana today and be part of the next generation of digital finance. Happy Holidays!</p>
         </div>
 
-        <div class="pixel-game">
-            <h2>Pixel Art Game</h2>
-            <canvas id="pixel-canvas" width="800" height="600"></canvas>
-            <div>
-                <label for="color-picker">Choose a color:</label>
-                <input type="color" id="color-picker" value="#ff0000">
-            </div>
+        <div class="space-shooter-game">
+            <h2>Space Shooter Game</h2>
+            <canvas id="game-canvas" width="800" height="600"></canvas>
+            <p>Score: <span id="score">0</span></p>
         </div>
 
         <div class="social-links">
@@ -393,11 +390,12 @@
 
         // Phantom Wallet Integration
         const connectWalletButton = document.getElementById('connect-wallet');
-        const pixelGameSection = document.querySelector('.pixel-game');
-        const pixelCanvas = document.getElementById('pixel-canvas');
-        const colorPicker = document.getElementById('color-picker');
+        const spaceShooterGameSection = document.querySelector('.space-shooter-game');
+        const gameCanvas = document.getElementById('game-canvas');
+        const scoreElement = document.getElementById('score');
 
-        let isDrawing = false;
+        let isGameRunning = false;
+        let player, bullets, enemies, score;
 
         connectWalletButton.addEventListener('click', async () => {
             if (window.solana && window.solana.isPhantom) {
@@ -408,8 +406,11 @@
 
                     loadTokens();
                     updateDisplay();
-                    pixelGameSection.style.display = 'block';
+                    spaceShooterGameSection.style.display = 'block';
                     connectWalletButton.style.display = 'none';
+
+                    initGame();
+                    animate();
                 } catch (err) {
                     console.error('Error connecting to Phantom wallet:', err);
                 }
@@ -418,24 +419,85 @@
             }
         });
 
-        pixelCanvas.addEventListener('mousedown', () => {
-            isDrawing = true;
-        });
+        function initGame() {
+            isGameRunning = true;
+            player = { x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 50, width: 50, height: 50 };
+            bullets = [];
+            enemies = [];
+            score = 0;
+            scoreElement.textContent = score;
 
-        pixelCanvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
+            setInterval(() => {
+                enemies.push({ x: Math.random() * (gameCanvas.width - 50), y: 0, width: 50, height: 50 });
+            }, 1000);
 
-        pixelCanvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                const rect = pixelCanvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const ctx = pixelCanvas.getContext('2d');
-                ctx.fillStyle = colorPicker.value;
-                ctx.fillRect(x, y, 10, 10);
-            }
-        });
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    bullets.push({ x: player.x + player.width / 2 - 5, y: player.y, width: 10, height: 20 });
+                }
+            });
+        }
+
+        function animate() {
+            if (!isGameRunning) return;
+
+            const ctx = gameCanvas.getContext('2d');
+            ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            // Draw player
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw bullets
+            bullets.forEach((bullet, index) => {
+                bullet.y -= 5;
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+
+                if (bullet.y < 0) {
+                    bullets.splice(index, 1);
+                }
+            });
+
+            // Draw enemies
+            enemies.forEach((enemy, index) => {
+                enemy.y += 2;
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+                if (enemy.y > gameCanvas.height) {
+                    enemies.splice(index, 1);
+                }
+
+                // Check for collisions
+                bullets.forEach((bullet, bulletIndex) => {
+                    if (
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y
+                    ) {
+                        bullets.splice(bulletIndex, 1);
+                        enemies.splice(index, 1);
+                        score++;
+                        scoreElement.textContent = score;
+                    }
+                });
+
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    isGameRunning = false;
+                    alert('Game Over! Your score: ' + score);
+                    initGame();
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
 
         // Check if Phantom wallet is installed
         if (typeof window.solana === 'undefined' || !window.solana.isPhantom) {
