@@ -20,6 +20,8 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 1; /* Ensure content is above the particle background */
         }
 
         header {
@@ -126,13 +128,13 @@
             cursor: not-allowed;
         }
 
-        #binary-background {
+        #particles-js {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 0; /* Ensure it's behind the content */
         }
 
         .about-section {
@@ -195,7 +197,9 @@
     </style>
 </head>
 <body>
-    <canvas id="binary-background"></canvas>
+    <!-- Particle.js Background -->
+    <div id="particles-js"></div>
+
     <div class="container">
         <div class="login-section">
             <button id="connect-wallet">Connect Phantom Wallet</button>
@@ -205,7 +209,7 @@
 
         <header>
             <h1>Jevana AI</h1>
-            <p>The future of decentralized finance is here</p>
+            <p>The future of decentralized finance is here !</p>
         </header>
 
         <div class="eye-container">
@@ -217,7 +221,7 @@
         </div>
 
         <div class="crypto-miner">
-            <h2>Jevana Holiday Miner</h2>
+            <h2>Jevana Miner</h2>
             <p>Tokens: <span id="token-count">0.00</span></p>
             <button id="mine-button">Mine Jevana (Slow)</button>
             <p>Mining Power: <span id="mining-power">1</span></p>
@@ -236,7 +240,7 @@
         </div>
         
         <div class="about-section">
-        <h2>About Jevana - Holiday Edition</h2>
+        <h2>About Jevana</h2>
         <div id="typing-effect"></div>
         </div>
 
@@ -263,75 +267,115 @@
     <!-- Include Solana Web3.js library via CDN -->
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
 
+    <!-- Include Particle.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
     <script>
-        // Abstract Background Animation
-        const canvas = document.getElementById('binary-background');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const particles = [];
-        const particleCount = 100;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 3 + 1;
-                this.speedX = Math.random() * 2 - 1;
-                this.speedY = Math.random() * 2 - 1;
-                this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
-            }
-
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-                if (this.size > 0.2) this.size -= 0.1;
-            }
-
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        function initParticles() {
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle());
-            }
-        }
-
-        function animateParticles() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach((particle, index) => {
-                particle.update();
-                particle.draw();
-
-                if (particle.size <= 0.2) {
-                    particles.splice(index, 1);
+        // Initialize Particle.js
+        particlesJS('particles-js', {
+            particles: {
+                number: {
+                    value: 80,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: '#ff0000' // Red color for particles
+                },
+                shape: {
+                    type: 'circle',
+                    stroke: {
+                        width: 0,
+                        color: '#000000'
+                    },
+                    polygon: {
+                        nb_sides: 5
+                    }
+                },
+                opacity: {
+                    value: 0.5,
+                    random: false,
+                    anim: {
+                        enable: false,
+                        speed: 1,
+                        opacity_min: 0.1,
+                        sync: false
+                    }
+                },
+                size: {
+                    value: 3,
+                    random: true,
+                    anim: {
+                        enable: false,
+                        speed: 40,
+                        size_min: 0.1,
+                        sync: false
+                    }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#ff0000',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 6,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false,
+                    attract: {
+                        enable: false,
+                        rotateX: 600,
+                        rotateY: 1200
+                    }
                 }
-            });
-
-            if (particles.length < particleCount) {
-                particles.push(new Particle());
-            }
-
-            requestAnimationFrame(animateParticles);
-        }
-
-        initParticles();
-        animateParticles();
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            initParticles();
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: 'repulse'
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: 'push'
+                    },
+                    resize: true
+                },
+                modes: {
+                    grab: {
+                        distance: 400,
+                        line_linked: {
+                            opacity: 1
+                        }
+                    },
+                    bubble: {
+                        distance: 400,
+                        size: 40,
+                        duration: 2,
+                        opacity: 8,
+                        speed: 3
+                    },
+                    repulse: {
+                        distance: 200,
+                        duration: 0.4
+                    },
+                    push: {
+                        particles_nb: 4
+                    },
+                    remove: {
+                        particles_nb: 2
+                    }
+                }
+            },
+            retina_detect: true
         });
 
         // Typing Effect for About Section
