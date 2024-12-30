@@ -205,7 +205,7 @@
 
         <header>
             <h1>Jevana AI</h1>
-            <p>The future of decentralized finance is here - Merry Cryptmas!</p>
+            <p>The future of decentralized finance is here</p>
         </header>
 
         <div class="eye-container">
@@ -264,81 +264,112 @@
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
 
     <script>
-        // Binary Background
+        // Abstract Background Animation
         const canvas = document.getElementById('binary-background');
         const ctx = canvas.getContext('2d');
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const binary = ['0', '1'];
-        const fontSize = 14;
-        const columns = Math.floor(canvas.width / fontSize);
-        const drops = new Array(columns).fill(1);
+        const particles = [];
+        const particleCount = 100;
 
-        function drawBinary() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * 2 - 1;
+                this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+            }
 
-            ctx.fillStyle = '#ff0000';
-            ctx.font = `${fontSize}px monospace`;
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
 
-            for (let i = 0; i < drops.length; i++) {
-                const text = binary[Math.floor(Math.random() * binary.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (this.size > 0.2) this.size -= 0.1;
+            }
 
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
 
-        setInterval(drawBinary, 33);
+        function initParticles() {
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+
+                if (particle.size <= 0.2) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            if (particles.length < particleCount) {
+                particles.push(new Particle());
+            }
+
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
 
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            initParticles();
         });
 
+        // Typing Effect for About Section
+        const aboutText = [
+            "This holiday season, Jevana brings you the gift of revolutionary cryptocurrency designed to reshape the landscape of decentralized finance. Built on cutting-edge blockchain technology, Jevana offers unparalleled security, scalability, and efficiency for all your financial needs.",
+            "Our mission is to spread joy and democratize access to financial services, empowering individuals across the globe. With Jevana, you're not just investing in a cryptocurrency; you're joining a festive movement towards a more inclusive and transparent financial future.",
+            "Experience the magic of Jevana today and be part of the next generation of digital finance. Happy Holidays!"
+        ];
 
-// Typing Effect for About Section
-const aboutText = [
-    "This holiday season, Jevana brings you the gift of revolutionary cryptocurrency designed to reshape the landscape of decentralized finance. Built on cutting-edge blockchain technology, Jevana offers unparalleled security, scalability, and efficiency for all your financial needs.",
-    "Our mission is to spread joy and democratize access to financial services, empowering individuals across the globe. With Jevana, you're not just investing in a cryptocurrency; you're joining a festive movement towards a more inclusive and transparent financial future.",
-    "Experience the magic of Jevana today and be part of the next generation of digital finance. Happy Holidays!"
-];
+        const typingEffectElement = document.getElementById('typing-effect');
+        let currentTextIndex = 0;
+        let currentCharIndex = 0;
+        let isDeleting = false;
 
-const typingEffectElement = document.getElementById('typing-effect');
-let currentTextIndex = 0;
-let currentCharIndex = 0;
-let isDeleting = false;
+        function typeText() {
+            const currentText = aboutText[currentTextIndex];
 
-function typeText() {
-    const currentText = aboutText[currentTextIndex];
+            if (isDeleting) {
+                typingEffectElement.textContent = currentText.substring(0, currentCharIndex - 1);
+                currentCharIndex--;
+            } else {
+                typingEffectElement.textContent = currentText.substring(0, currentCharIndex + 1);
+                currentCharIndex++;
+            }
 
-    if (isDeleting) {
-        typingEffectElement.textContent = currentText.substring(0, currentCharIndex - 1);
-        currentCharIndex--;
-    } else {
-        typingEffectElement.textContent = currentText.substring(0, currentCharIndex + 1);
-        currentCharIndex++;
-    }
+            if (!isDeleting && currentCharIndex === currentText.length) {
+                setTimeout(() => isDeleting = true, 2000); // Wait 2 seconds before deleting
+            } else if (isDeleting && currentCharIndex === 0) {
+                isDeleting = false;
+                currentTextIndex = (currentTextIndex + 1) % aboutText.length; // Move to the next text
+            }
 
-    if (!isDeleting && currentCharIndex === currentText.length) {
-        setTimeout(() => isDeleting = true, 2000); // Wait 2 seconds before deleting
-    } else if (isDeleting && currentCharIndex === 0) {
-        isDeleting = false;
-        currentTextIndex = (currentTextIndex + 1) % aboutText.length; // Move to the next text
-    }
+            setTimeout(typeText, isDeleting ? 50 : 100); // Adjust typing speed
+        }
 
-    setTimeout(typeText, isDeleting ? 50 : 100); // Adjust typing speed
-}
+        // Start the typing effect
+        typeText();
 
-// Start the typing effect
-typeText();
-
-        
         // Eye Movement
         const eye = document.getElementById('devil-eye');
         const pupil = document.getElementById('pupil');
